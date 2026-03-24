@@ -1,0 +1,162 @@
+I want Python code for iterative inverse design of a grayscale copper-density image using convolution.
+
+## Objective
+Modify only allowed rectangular regions in a grayscale 8bpp image so that, after convolution with a known kernel, the gray values at specified monitor points become as uniform as possible around target GV = 20.
+
+## Physical meaning
+- GV = 255 means 100% Cu density
+- GV = 0 means 0% Cu density
+- Each pixel represents 0.1 mm
+- The grayscale image is a density representation because real feature size is too fine to model directly
+
+## Available files
+1. Base image:
+   - `l1-2post_panel_nhk_modified_1_trimmed.png`
+2. Editable regions:
+   - `sections.csv`
+   - columns:
+     - `Section, Area, Average GV, Min, Max, BX, BY, Width, Height`
+3. Monitor points:
+   - `points.csv`
+   - columns include `X`, `Y`
+4. Kernel:
+   - use the same kernel generation and FFT convolution logic as my current script
+   - same options: `sigma`, `kind`, `trunc`
+
+## Constraints
+1. Forward model must be the same plain convolution as my current script.
+2. Pixels outside editable rectangles must remain unchanged.
+3. Pixels inside editable rectangles may be overwritten directly, but must satisfy:
+   $
+   0 \le x \le 255
+   $
+4. All monitor points are equally important.
+5. Target is:
+   $
+   GV = 20
+   $
+6. Acceptable tolerance is ±10%:
+   $
+   18 \le GV \le 22
+   $
+7. Non-uniform editing inside each section is allowed.
+8. Image is about $5000 \times 5000$, so computation must be efficient.
+
+## Optimization requirements
+Use a computationally practical iterative method, preferably coarse-to-fine, such as:
+- block-based variables inside each editable section, or
+- tiled updates inside sections
+
+Do not use a huge dense full-resolution direct solve if it is too memory-expensive.
+
+Please choose a practical method and explain briefly in comments why it is suitable for this scale.
+
+## GPU
+Support optional GPU acceleration with CuPy.
+- detect GPU automatically
+- use GPU FFT convolution if available
+- otherwise fall back to CPU
+- print clearly which backend is used
+- minimize unnecessary CPU/GPU transfers
+
+## Per-iteration outputs
+At each iteration, save:
+
+1. current edited input image
+2. current kernel output map
+3. CSV of monitor points containing:
+   - iteration
+   - X
+   - Y
+   - predicted GV
+   - error to target $GV - 20$
+   - in-tolerance flag
+4. iteration summary row containing:
+   - iteration number
+   - mean monitor GV
+   - std monitor GV
+   - min GV
+   - max GV
+   - RMSE to target
+   - max abs error
+   - fraction within tolerance
+5. plot of monitor points colored by predicted GV or error
+6. optional difference image vs original
+
+## Console logging
+At each iteration print:
+- iteration number
+- objective / loss
+- mean, std, min, max monitor GV
+- RMSE to target
+- fraction within tolerance
+- backend used
+- elapsed time
+
+## Progress bars
+Use `tqdm` for:
+- loading data
+- building masks / blocks
+- optimization iterations
+- heavy substeps if practical
+- saving outputs
+
+## Stop controls
+Include CLI parameters such as:
+- `--max_iters`
+- `--save_every`
+- `--early_stop_rmse`
+- `--early_stop_uniformity_std`
+- `--early_stop_all_within_tolerance`
+- `--patience`
+- `--force_cpu`
+
+I want outputs saved every iteration so I can stop manually and still inspect progress.
+
+## Output structure
+Use something like:
+
+- `output/`
+  - `edited_images/`
+  - `kernel_maps/`
+  - `monitor_csv/`
+  - `plots/`
+  - `diff_images/`
+  - `iteration_summary.csv`
+  - `final/`
+
+## CLI arguments
+Please support:
+- `--input_image`
+- `--sections_csv`
+- `--points_csv`
+- `--output_dir`
+- `--sigma`
+- `--kind`
+- `--trunc`
+- `--target_gv`
+- `--tol_pct`
+- `--max_iters`
+- `--save_every`
+- `--force_cpu`
+- block/tile size controls
+- regularization controls if used
+
+## Implementation guidance
+1. Use modular Python.
+2. Reuse the same FFT convolution logic from my existing script where possible.
+3. Keep memory usage reasonable.
+4. Avoid dense matrices if they are too large.
+5. Comment clearly what is being optimized and why the method is computationally practical.
+6. Save final outputs:
+   - final optimized image
+   - final convolved map
+   - final monitor CSV
+   - full iteration summary CSV
+   - per-iteration outputs
+
+## Important
+Uniformity at monitor points is the main goal.
+Outside editable sections must remain unchanged.
+Inside editable sections, spatial variation is allowed.
+Speed matters, so prefer an efficient iterative method with optional GPU acceleration.
