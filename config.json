@@ -1,0 +1,44 @@
+{
+  "_comment": "Electroplating shield uniformity simulation — default config (acid copper, V1)",
+
+  "panel_width":  510.0,
+  "panel_height": 515.0,
+  "grid_step":    2.0,
+
+  "current_density":   3.0,
+  "plating_time_s":    7200,
+  "cathode_efficiency": 1.0,
+  "metal": "Cu",
+
+  "oscillation_amplitude": 25.0,
+  "oscillation_period":    30.0,
+  "oscillation_type":      "sinusoidal",
+
+  "anode_to_panel_gap":  30.0,
+  "shield_to_panel_gap": 30.0,
+  "shield_thickness":     5.0,
+  "shield_width":        600.0,
+  "shield_height":       615.0,
+  "shield_offset_x":     0.0,
+  "shield_offset_y":     0.0,
+
+  "hole_diameter":   15.0,
+  "hole_pitch":      25.0,
+  "hex_orientation": "vertical_stagger",
+
+  "blocked_holes":    [],
+  "image_mask_file":  null,
+
+  "kernel_type":  "gaussian",
+  "kernel_sigma": null,
+
+  "polarization_exponent": null,
+
+  "n_time_steps":    60,
+  "n_snapshot_steps": 4,
+
+  "enable_animation": false,
+  "animation_fps":    10,
+
+  "output_folder": "output"
+}
