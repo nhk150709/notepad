@@ -88,7 +88,7 @@ _REQUIRED = [
 
 def load_config(path):
     """Load JSON config, fill defaults, validate required keys."""
-    with open(path) as f:
+    with open(path, encoding='utf-8') as f:
         cfg = json.load(f)
     # Remove comment key if present
     cfg.pop('_comment', None)
