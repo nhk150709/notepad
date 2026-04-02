@@ -88,7 +88,7 @@ _REQUIRED = [
 
 def load_config(path):
     """Load JSON config, fill defaults, validate required keys."""
-    with open(path) as f:
+    with open(path, encoding='utf-8') as f:
         cfg = json.load(f)
     # Remove comment key if present
     cfg.pop('_comment', None)
@@ -486,6 +486,27 @@ def _save_heatmap(arr, px, py, title, path, vmin, vmax, cmap='RdYlGn'):
     plt.close(fig)
 
 
+def _save_mask_export(mask, grid, path):
+    """
+    Save a clean grayscale PNG of the aperture mask — no axes, no overlays.
+    White = open, Black = blocked.  This file can be edited in MS Paint
+    and fed back as image_mask_file.
+
+    Image dimensions match the working grid (1 px per grid cell) so the
+    coordinate mapping is exact when re-imported.
+    mask shape: (nx, ny) with indexing='ij'
+    PIL expects (height=ny, width=nx), so we transpose.
+    """
+    try:
+        from PIL import Image
+    except ImportError:
+        print("[WARN] Pillow not installed; skipping mask export PNG.")
+        return
+    arr = (mask.T * 255).astype(np.uint8)   # (ny, nx) for PIL
+    img = Image.fromarray(arr, mode='L')
+    img.save(path)
+
+
 def _save_mask_preview(mask, grid, cfg, path):
     """Save working-grid aperture mask with panel-outline overlay."""
     wx, wy = grid['work_x'], grid['work_y']
@@ -583,10 +604,15 @@ def save_all(cfg, grid, mask, tmap, snapshots, st, out_dir):
                       p, vmin, vmax)
         print(f"[OUT] Snapshot {i:02d}     → {p}  (t={t:.1f}s, δ={d:+.1f}mm)")
 
-    # 3 — Aperture mask preview
+    # 3 — Aperture mask preview (annotated, for visual reference)
     p = os.path.join(out_dir, f'mask_preview_{ts}.png')
     _save_mask_preview(mask, grid, cfg, p)
     print(f"[OUT] Mask preview   → {p}")
+
+    # 3b — Clean mask export (editable in MS Paint, re-importable as image_mask_file)
+    p = os.path.join(out_dir, f'mask_export_{ts}.png')
+    _save_mask_export(mask, grid, p)
+    print(f"[OUT] Mask export    → {p}  (edit this in Paint, then set as image_mask_file)")
 
     # 4 — Statistics JSON
     p = os.path.join(out_dir, f'statistics_{ts}.json')
