@@ -1,0 +1,157 @@
+You are a programming consultant with electroplating expertise.
+
+I want you to create a Python-based fast engineering approximation script to estimate the effect of a perforated insulating shield on electroplating thickness uniformity over a panel.
+
+## Objective
+Create a simulation that predicts relative plating thickness distribution (%) over a panel and estimates uniformity metrics, especially standard deviation across the panel, based on shield geometry and panel oscillation.
+
+This is a feasibility tool, not a full FEM solver.
+
+## Required modeling approach
+Use a fast engineering approximation, not full electrostatic FEM.
+
+Use this modeling concept:
+1. Represent the cathode panel as a 2D grid.
+2. Represent the shield as a perforated transmission mask.
+3. Use a kernel-based field dispersion model:
+   - Option C = open-area transmission + dispersion kernel
+   - effective field = aperture mask convolved with a dispersion kernel
+4. Simulate panel oscillation relative to the fixed shield over time.
+5. Integrate local deposition over the plating time.
+6. Output relative thickness map normalized to 100% average thickness.
+7. Assume reactant supply is constant.
+8. Ignore optimization for now; focus on simulation feasibility.
+
+## Process / physical assumptions
+- Metal/process: acid copper by default
+- Also keep future compatibility in mind for Ni and Sn
+- One flat anode facing the panel
+- Vertical orientation
+- One-side model only, even though actual machine is double-sided
+- Constant current density model only; ignore voltage in V1
+- Current density should be variable in config
+- Default current density: 3.0 A/dm²
+- Plating time: 2 hours
+- Cathode efficiency: 100% default
+- No current thieves / robbers / masks
+- I want to isolate shield effect
+- Do not intentionally add panel edge effect; shield is larger than panel
+- If needed, include an optional future parameter for polarization / smoothing, but keep default behavior simple
+
+## Geometry
+### Panel
+- Size: 510 mm x 515 mm
+- Model the full active area
+
+### Motion
+- Panel oscillates left-right only
+- Stroke = 50 mm total peak-to-peak, so amplitude = ±25 mm
+- Motion can be exact sinusoidal or a computationally faster approximation if justified
+- Default oscillation period = 30 s
+- Only panel moves; shield and anode remain fixed
+
+### Shield
+- Located between anode and panel
+- Shield-to-panel distance = 30 mm
+- Anode-to-panel gap unknown in reality, but for V1 make it tunable and default to 30 mm
+- Shield material: insulating PVC
+- Shield thickness: 5 mm
+- Shield covers the full panel and is larger than the panel
+- Shield centered relative to panel at neutral position
+- Shield position should remain configurable in the config
+
+### Hole pattern
+- Circular holes
+- Hole diameter = 15 mm default
+- Pitch = 25 mm default
+- Pitch is center-to-center
+- Pattern = regular hexagonal array
+- Orientation = vertically staggered
+- All holes open by default
+- Need support for manually blocked holes
+
+## Input / configuration
+Use JSON configuration.
+
+Config should support at least:
+- panel width / height
+- grid step
+- current density
+- plating time
+- efficiency
+- oscillation amplitude
+- oscillation period
+- anode-to-panel gap
+- shield-to-panel gap
+- shield thickness
+- shield size
+- hole diameter
+- hole pitch
+- hex pattern orientation
+- shield x/y offset
+- kernel / dispersion parameters
+- optional polarization smoothing exponent
+- enable/disable animation
+- number of time steps
+- output folder
+
+## Resolution / performance
+- Default grid step = 2 mm
+- This is for fast screening, but still reasonably detailed
+- Animation should be disabled by default for resource savings
+
+## Shield editing requirements
+Support both methods:
+1. Procedural generation of the regular perforated shield pattern
+2. External image mask editing (for example edited in Microsoft Paint)
+
+For image mask mode:
+- PNG input
+- white = open
+- black = blocked
+- use this to override or define manual hole blocking/opening
+
+Also support optional explicit blocked-hole list in config if practical.
+
+## Outputs required
+Please generate:
+1. Relative thickness heatmap image (%)
+2. Standard deviation across panel
+3. Min / max thickness (%)
+4. Time-averaged thickness map
+5. A few instantaneous snapshots during oscillation
+6. Optional animation output, disabled by default
+
+## Code requirements
+- Python
+- Run by executing a .py file
+- Command-line style is enough
+- Well-structured, commented code
+- Prefer modular design
+- Include a sample JSON config
+- Include instructions on how to run
+- Include explanation of the modeling assumptions and limitations
+- Keep the code practical and editable
+
+## Important request
+Before writing the final code, first provide:
+1. A concise summary of the finalized assumptions
+2. Proposed model equations / algorithm
+3. Suggested JSON schema
+4. File structure
+5. Then provide the Python code
+
+## Additional preference
+If there are uncertain physical parameters, expose them as tunable parameters rather than hard-coding them.
+
+## Output basis
+I prefer relative thickness (%) normalized to panel average = 100%.
+Absolute thickness in µm can be optional later.
+
+## Notes
+- I measure thickness with confocal microscope at 64 points per panel in real life, but I do not have calibration data yet
+- Current real behavior is roughly “center is 50% thicker”
+- For now I want a simulation tool, not calibration/optimization
+- Please keep the field model approximate and fast
+
+Please proceed with the design and code.
